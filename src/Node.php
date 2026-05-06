@@ -4,24 +4,36 @@ namespace GoProtect;
 
 class Node
 {
-    protected int $a;
-    protected int $b;
-    protected int $cost;
+    protected int $id;
+
+    protected array $costs = [];
 
     /**
      * @throws Error
      */
-    public function __construct(int $a, int $b, int $cost)
+    public function __construct(int $id, bool $root = false)
     {
-        if ($a <= 0) {
-            throw new Error(sprintf("A(%d) should be greater than 0", $a));
-        }
-        if ($b <= 0) {
-            throw new Error(sprintf("B(%d) should be greater than 0", $b));
+        if (!$root && $id <= 0) {
+            throw Error::nodeIdGreaterThan($id);
         }
 
-        $this->a = $a;
-        $this->b = $b;
-        $this->cost = $cost;
+        $this->id = $id;
+    }
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function setCost(self $child, int $cost): void
+    {
+        if (!isset($this->costs[$child->getId()])) {
+            $this->costs[$child->getId()] = $cost;
+        }
+    }
+
+    public function getCosts(): array
+    {
+        return $this->costs;
     }
 }

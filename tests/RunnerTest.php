@@ -52,7 +52,7 @@ class RunnerTest extends TestCase
                 "input" => [
                     "1 -2"
                 ],
-                "errOutput" => ["Invalid row #1 '1 -2': item trades(-2) should be greater than 0"],
+                "errOutput" => ["Invalid row #1 '1 -2': trades count(-2) should be greater than 0"],
                 "expected" => 1,
             ],
             "invalid input: num count trades" => [
@@ -71,20 +71,36 @@ class RunnerTest extends TestCase
                 "errOutput" => ["Invalid row #2 'a 2 0': invalid format"],
                 "expected" => 1,
             ],
-            "invalid input: negative a trades" => [
+            "invalid input: negative A trade id" => [
                 "input" => [
                     "2 1",
                     "-1 2 0 "
                 ],
-                "errOutput" => ["Invalid row #2 '-1 2 0': A(-1) should be greater than 0"],
+                "errOutput" => ["Invalid row #2 '-1 2 0': Id(-1) should be greater than 0"],
                 "expected" => 1,
             ],
-            "invalid input: negative b trades" => [
+            "invalid input: negative B trade id" => [
                 "input" => [
                     "2 1",
                     "1 -2 0"
                 ],
-                "errOutput" => ["Invalid row #2 '1 -2 0': B(-2) should be greater than 0"],
+                "errOutput" => ["Invalid row #2 '1 -2 0': Id(-2) should be greater than 0"],
+                "expected" => 1,
+            ],
+            "invalid input: overflown A trade id" => [
+                "input" => [
+                    "3 1",
+                    "4 2 0 "
+                ],
+                "errOutput" => ["Invalid row #2 '4 2 0': Id(4) should be less than or equals 3"],
+                "expected" => 1,
+            ],
+            "invalid input: overflown B trade id" => [
+                "input" => [
+                    "2 1",
+                    "1 3 0"
+                ],
+                "errOutput" => ["Invalid row #2 '1 3 0': Id(3) should be less than or equals 2"],
                 "expected" => 1,
             ],
             "to few trades" => [
@@ -134,6 +150,25 @@ class RunnerTest extends TestCase
                 "output" => "NO",
                 "expected" => 0,
             ],
+            "ex 0" => [
+                "input" => "14 14
+1 2 100
+1 3 101
+1 4 102
+2 5 200
+2 6 201
+2 7 202
+5 11 300
+5 12 301
+6 13 302
+3 8 203
+4 9 204
+9 1 303
+10 14 304
+4 10 206",
+                "output" => "NO",
+                "expected" => 0,
+            ],
         ];
     }
 
@@ -169,16 +204,26 @@ class RunnerTest extends TestCase
                 return $input[$i++] ?? false;
             });
 
-        $mock->expects($this->exactly(count($output)))
+        $prepareOutput = function (array &$output, string $str) {
+            $str
+                |> trim(...)
+                |> (fn($x) => explode("\n", $x))
+                |> (fn($x) => array_map("trim", $x))
+                |> (function ($x) use (&$output) {
+                return array_push($output, ...$x);
+            });
+        };
+
+        $mock->expects($this->atMost(count($output)))
             ->method("out")
-            ->willReturnCallback(function (string $str) use (&$actualOutput): void {
-                $actualOutput[] = trim($str);
+            ->willReturnCallback(function (string $str) use (&$actualOutput, $prepareOutput): void {
+                $prepareOutput($actualOutput, $str);
             });
 
-        $mock->expects($this->exactly(count($errOutput)))
+        $mock->expects($this->atMost(count($errOutput)))
             ->method("error")
-            ->willReturnCallback(function (string $str) use (&$actualErrOutput): void {
-                $actualErrOutput[] = trim($str);
+            ->willReturnCallback(function (string $str) use (&$actualErrOutput, $prepareOutput): void {
+                $prepareOutput($actualErrOutput, $str);
             });
 
         $this->assertEquals($expected, $mock->run());

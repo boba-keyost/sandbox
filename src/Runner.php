@@ -64,7 +64,7 @@ class Runner
                 if (!$initialized) {
                     $tree->init($itemCount, $tradesCount);
                 } else {
-                    $tree->add($a, $b, $cost);
+                    $tree->addTrade($a, $b, $cost, false);
                 }
             } catch (Error $e) {
                 $this->prefixError($errPrefix, $e->getMessage());
@@ -75,14 +75,14 @@ class Runner
         $this->close($this->inStream);
 
         try {
-            $imbalance = $tree->checkImbalance();
+            $imbalancedNodes = $tree->checkImbalance(true);
         } catch (Error $e) {
             $this->error($e->getMessage());
             return 1;
         }
 
-        if ($imbalance !== null) {
-            $this->out(sprintf("YES\n%s\n", $imbalance));
+        if (!empty($imbalancedNodes)) {
+            $this->out(sprintf("YES\n%s\n", implode("\n", $imbalancedNodes)));
         } else {
             $this->out("NO\n");
         }
