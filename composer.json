@@ -1,0 +1,21 @@
+{
+    "autoload": {
+        "psr-4": {
+            "GoProtect\\": "./src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "./tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "boba_keyost",
+            "email": "boba.keyost@gmail.com"
+        }
+    ],
+    "require-dev": {
+        "phpunit/phpunit": "^13"
+    }
+}
