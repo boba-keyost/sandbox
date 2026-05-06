@@ -11,7 +11,7 @@ class Tree implements Iterator, Countable
     protected int $tradesCount = 0;
 
     protected array $nodes = [];
-    protected array $trades = [];
+    protected int $tradesAdded = 0;
 
     /**
      * @throws Error
@@ -36,7 +36,7 @@ class Tree implements Iterator, Countable
     public function filled(): bool
     {
         return $this->initialized()
-            && count($this->trades) >= $this->tradesCount;
+            && $this->tradesAdded >= $this->tradesCount;
     }
 
     /**
@@ -111,12 +111,20 @@ class Tree implements Iterator, Countable
     /**
      * @throws Error
      */
-    public function node(int $id): Node
+    public function hasNode(int $id): bool
     {
         if ($id > $this->itemCount) {
             throw Error::nodeIdLessThan($id, $this->itemCount, true);
         }
-        if (!isset($this->nodes[$id])) {
+        return isset($this->nodes[$id]);
+    }
+
+    /**
+     * @throws Error
+     */
+    public function node(int $id): Node
+    {
+        if (!$this->hasNode($id)) {
             $this->nodes[$id] = new Node($id);
         }
         return $this->nodes[$id];
@@ -125,18 +133,14 @@ class Tree implements Iterator, Countable
     /**
      * @throws Error
      */
-    public function addTrade(int $a, int $b, int $cost, bool $addReverse = false): void
+    public function addTrade(int $a, int $b, int $cost): void
     {
         $aNode = $this->node($a);
         $bNode = $this->node($b);
 
-        $this->trades[] = "$a - $b $cost";
+        $this->tradesAdded++;
 
         $aNode->setCost($bNode, $cost);
-        if ($addReverse) {
-            $bNode->setCost($aNode, -$cost);
-        }
-        // todo: add cycle check here
     }
 
     protected int $i = 0;
@@ -158,7 +162,7 @@ class Tree implements Iterator, Countable
 
     public function valid(): bool
     {
-        return $this->i < $this->tradesCount;
+        return $this->i < $this->count();
     }
 
     public function rewind(): void
@@ -168,6 +172,6 @@ class Tree implements Iterator, Countable
 
     public function count(): int
     {
-        return $this->tradesCount;
+        return $this->tradesAdded;
     }
 }

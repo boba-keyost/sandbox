@@ -64,7 +64,7 @@ class Runner
                 if (!$initialized) {
                     $tree->init($itemCount, $tradesCount);
                 } else {
-                    $tree->addTrade($a, $b, $cost, false);
+                    $tree->addTrade($a, $b, $cost);
                 }
             } catch (Error $e) {
                 $this->prefixError($errPrefix, $e->getMessage());
